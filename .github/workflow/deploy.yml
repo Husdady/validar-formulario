@@ -24,4 +24,4 @@ steps:
 - name: deploy the app
   run: npm run deploy
   env:
-   GH_TOKEN: ${{ secrets.GH_VALIDATION_FORM_REACT }}
+   GH_VALIDATION_FORM_REACT: ${{ secrets.GH_VALIDATION_FORM_REACT }}
