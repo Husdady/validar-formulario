@@ -1,0 +1,20 @@
+{
+  "files": {
+    "main.css": "/validar-formulario/static/css/main.9851fa05.chunk.css",
+    "main.js": "/validar-formulario/static/js/main.fcfd55cf.chunk.js",
+    "main.js.map": "/validar-formulario/static/js/main.fcfd55cf.chunk.js.map",
+    "runtime-main.js": "/validar-formulario/static/js/runtime-main.41b514cc.js",
+    "runtime-main.js.map": "/validar-formulario/static/js/runtime-main.41b514cc.js.map",
+    "static/js/2.6dd81097.chunk.js": "/validar-formulario/static/js/2.6dd81097.chunk.js",
+    "static/js/2.6dd81097.chunk.js.map": "/validar-formulario/static/js/2.6dd81097.chunk.js.map",
+    "index.html": "/validar-formulario/index.html",
+    "static/css/main.9851fa05.chunk.css.map": "/validar-formulario/static/css/main.9851fa05.chunk.css.map",
+    "static/js/2.6dd81097.chunk.js.LICENSE.txt": "/validar-formulario/static/js/2.6dd81097.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.41b514cc.js",
+    "static/js/2.6dd81097.chunk.js",
+    "static/css/main.9851fa05.chunk.css",
+    "static/js/main.fcfd55cf.chunk.js"
+  ]
+}
