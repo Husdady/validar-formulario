@@ -3,77 +3,128 @@ import { useState, useEffect } from 'react';
 /* Custom hooks */
 import { validateField, validateEmail } from './useValidation';
 
-/* Hook para validar formulario */
+const isEmpty = obj => Object.keys(obj).length === 0;
+
 const useForm = ({
-	/* Añado por ahora 3 propiedades que serán los valores iniciales del formulario (initialValues), válido el formulario con validationSchema que es un obj que define las reglas en los campos, y onSubmit se debería ejecutar cuando el formulario es válido */
 	initialValues,
 	validationSchema,
+	validate,
+	validateOnChange = true,
+	validateAllFields = false,
 	onSubmit
 }) => {
 
 	const [values, setValues] = useState(initialValues),
-	[errors, setErrors] = useState({}),
+		[errors, setErrors] = useState({}),
 
-	runValidationSchema = (property, value) => {
+		getRulesSchema = validationSchema ? Object.values(validationSchema) : [],
+		getPropertiesNameSchema = validationSchema ? Object.getOwnPropertyNames(validationSchema) : [],
+		getPropertiesValues = Object.getOwnPropertyNames(initialValues),
 
-		let result;
-
-		if (validationSchema) {
-			/* primero verifico si existe el Schema, acontinuación si tiene una propiedad llamada isEmail que válida correos electrónicos, para ello el Schema debe tener propiedades que se llamen iguales a los 'values' */
-
+		runValidationRules = (property, value) => {
+			let result;
 			if (validationSchema[property].isEmail) {
-				/* Si se cumple la condición entonces llamamos a la función validateEmail, que acepta un obj como parámetro y tres propiedades, el valor del email (texto) que se testea en la función, required: si el email está vacío, y validEmail, ambos retornan un mensaje dependiendo de cuál condición se cumple  */
 				result = validateEmail({
 					value,
-					required: validationSchema[property].required, /* Cómo mensaje le pasamos la propiedad required del Schema dependiendo del campo */
-					validEmail: validationSchema[property].validEmail /* Cómo mensaje le pasamos la propiedad validEmail del Schema dependiendo del campo */
+					required: validationSchema[property].required,
+					validEmail: validationSchema[property].validEmail
 				});
 			} else {
-				/* Válida un campo si este, está vacío o se ha definido un límite de carácteres, validateField recibe 5 propiedades, el nombre del campo (name), el valor, un mensaje si el valor está vacío (emptyValue), min, el límite de carácteres, y shortValue, el mensaje que se muestra cuando min se cumple  */
-				const min = validationSchema[property].min.limit;
+				const existMinRule = validationSchema[property].min;
+				const min = existMinRule && existMinRule.limit;
 				result = validateField({
 					name: property,
 					value,
-					emptyValue: validationSchema[property].required,
+					required: validationSchema[property].required,
 					min,
-					shortValue: validationSchema[property].min.message(min)
+					shortValue: existMinRule && (typeof existMinRule.message === 'function' ? existMinRule.message(min) : existMinRule.message)
 				});
 			}
 
-			setErrors({...errors, [property]: result[property] });
-			
+			return result;
+		},
+
+		runValidationSchema = result => {
+			setErrors(result);
+			isEmpty(result) && onSubmit({
+				values,
+				resetForm
+			});
+		},
+
+		deleteUndefinedErrors = (result, property) => {
+			if (isEmpty(result)) {
+				const deleteProperty = { ...errors };
+				delete deleteProperty[property];
+				!isEmpty(errors) && setErrors(deleteProperty);
+			} else {
+				setErrors({ ...errors, [property]: result[property] });
+			}
+		},
+
+		runValidationErrors = ({ property, value, allValues }) => {
+			const getErrors = validateAllFields ? validate(allValues) : validate(property, value);
+			return getErrors;
+		},
+
+		runValidateAllFields = () => {
+			let result;
+			if (validationSchema) {
+				result = getRulesSchema.reduce((acc, _, i) => {
+					const property = getPropertiesNameSchema[i];
+					const getValidationResult = runValidationRules(property, values[property]);
+					return { ...acc, ...getValidationResult };
+				}, {});
+			} else if (validate) {
+				result = getPropertiesValues.reduce((acc, property) => {
+					// const getErrors = validate(property, values[property]);
+					const getErrors = runValidationErrors({
+						property,
+						value: values[property],
+						allValues: values
+					});
+					return { ...acc, ...getErrors };
+				}, {});
+			}
+			runValidationSchema(result);
+		},
+
+		setFieldValue = (property, value) => {
+			let deleteErrors;
+			const fieldValue = { ...values, [property]: value };
+			setValues(fieldValue);
+			if (validateOnChange) {
+				if (validationSchema) {
+					deleteErrors = runValidationRules(property, value);
+				} else if (validate) {
+					const getErrors = runValidationErrors({
+						property,
+						value,
+						allValues: fieldValue
+					});
+					deleteErrors = getErrors;
+					typeof getErrors === 'object' && setErrors(getErrors);
+				}
+			}
+			deleteUndefinedErrors(deleteErrors, property);
+		},
+
+		handleSubmit = e => {
+			e.preventDefault();
+			return runValidateAllFields();
+		},
+
+		resetForm = () => {
+			setValues(initialValues);
+			setErrors({});
 		}
-	},
-
-	runValidateAllFields = () => {
-		//// función para validar en todos los campos al presionar en el botón
-	},
-	
-	setFieldValue = (property, value) => {
-		setValues({...values, [property]: value}); /* cambio el valor dependiendo del campo que se está focuseando */
-		runValidationSchema(property, value);
-	},
-
-	handleSubmit = e => {
-		e.preventDefault();
-		runValidateAllFields();
-		return onSubmit(values);
-	},
-
-	resetForm = () => {
-		setValues(initialValues);
-		setErrors({});
-	}
-
-	// useEffect(() => {
-	// 	console.log(errors);
-	// }, [errors]);
 
 	return {
 		values,
 		setFieldValue,
 		errors,
-		handleSubmit
+		handleSubmit,
+		resetForm
 	}
 }
 

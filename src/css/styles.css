@@ -1,7 +1,7 @@
 body, html, main {
   height: 100%;
 }
-body {
+main {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -9,6 +9,8 @@ body {
 }
 #container {
   width: 30%;
+  min-width: 350px;
+  max-width: 1000px;
 }
 #container > h2, .textInput, button {
   font-family: Electrolize;
@@ -55,4 +57,11 @@ body {
 }
 .error-message:last-of-type {
   margin-bottom: 10px;
+}
+
+@media screen and (max-width: 375px){
+  #container {
+  width: 85%;
+  min-width: auto;
+  }
 }
